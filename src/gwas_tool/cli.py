@@ -31,6 +31,9 @@ def main():
 
     geno = pd.read_csv(geno_path)
     pheno = pd.read_csv(pheno_path)
+    ancestry = None
+    if args.ancestry:
+        ancestry = pd.read_csv(args.ancestry)
 
     # Align samples
     merged = pheno.merge(geno, on="sample_id", how="inner")
