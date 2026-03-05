@@ -230,7 +230,6 @@ Plots generated:
 - Example dataset is intentionally **very small** (10 samples, 5 SNPs)
 - P-values may appear unstable for ancestry-stratified analyses due to small sample sizes
 - Current implementation performs **single-SNP association testing only** and does not yet incorporate linkage disequilibrium (LD) analysis or multi-variant modeling
-- PCA-based population structure correction is implemented in a simplified form and may not fully capture complex population stratification present in real genomic datasets
 
 ---
 
@@ -238,7 +237,7 @@ Plots generated:
 
 Planned improvements for the final project submission:
 
-- Implement basic **Linkage Disequilibrium (LD) analysis** to explore correlations between nearby SNPs.
+- Implement **Linkage Disequilibrium (LD) analysis** to explore correlations between nearby SNPs.
 - Improve Manhattan plot formatting to more closely resemble standard GWAS visualizations.
 - Run the tool on a larger real dataset (e.g. the 1000 Genomes Project) instead of only the toy dataset.
 
