@@ -1,29 +1,29 @@
-# Python cache
+# python cache
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# Virtual environments
+# virtual environments
 venv/
 .env/
 .venv/
 
-# Jupyter notebooks checkpoints
+# jupyter notebooks checkpoints
 .ipynb_checkpoints/
 
-# Mac files
+# mac files
 .DS_Store
 
-# VS Code
+# vs Code
 .vscode/
 
-# Output files
+# output files
 results/
 *.png
 *.log
 
-# Build files
+# build files
 build/
 dist/
 *.egg-info/
