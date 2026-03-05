@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "gwas-tool"
 version = "0.1.0"
-description = "Command-line GWAS tool with PCA correction, ancestry-stratification, and Manhattan/QQ plots (sample dataset used for peer review)"."
+description = "Command-line GWAS tool with PCA correction, ancestry-stratification, and Manhattan/QQ plots (sample dataset used for peer review)"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
