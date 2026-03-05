@@ -20,7 +20,8 @@ def main():
     g.add_argument("--pcs", type=int, default=0, help="Number of PCA covariates to include (0 = none).")
     g.add_argument("--plots", action="store_true", help="Create Manhattan and QQ plots next to output.")
     g.add_argument("--pval-col", default="p_value", help="Name of p-value column in output (default: p_value).")
-
+    g.add_argument("--ancestry", help="Optional CSV file with columns: sample_id, ancestry")
+    
     args = p.parse_args()
 
     geno_path = Path(args.geno)
