@@ -1,17 +1,17 @@
 # CSE-284-Project  
-# GWAS Tool (Course Project)
+# GWAS Tool: A Command-Line Genome-Wide Association Study (GWAS) Pipeline
 
 ![Python](https://img.shields.io/badge/python-3.10+-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Course](https://img.shields.io/badge/course-CSE284-orange)
 ![Status](https://img.shields.io/badge/status-course_project-lightgrey)
 
-Lightweight command-line GWAS tool supporting PCA correction, ancestry-stratified analysis, and Manhattan/QQ plots.
+Command-line GWAS tool supporting PCA correction, ancestry-stratified analysis, and Manhattan/QQ plots.
 This repository contains a lightweight **command-line GWAS (Genome-Wide Association Study) implementation** developed for the CSE 284 course project.
 
 The tool performs **SNP-wise association testing** using genotype and phenotype data provided as CSV files. It also includes optional **population structure correction using PCA**, **ancestry-stratified GWAS**, and visualization of results using **Manhattan and QQ plots**.
 
-The project is designed as an **educational implementation** to demonstrate the core components of a GWAS pipeline on a small toy dataset.
+The project is designed to demonstrate the core components of a GWAS pipeline. For peer review, a very small toy dataset is included, so statistical results may appear unstable compared to real GWAS analyses.
 
 ---
 
@@ -225,19 +225,25 @@ Plots generated:
     └── README.md
 
 ---
-
-# Limitations
+## Limitations
 
 - Example dataset is intentionally **very small** (10 samples, 5 SNPs)
 - P-values may appear unstable for ancestry-stratified analyses due to small sample sizes
-- Intended for **educational demonstration**, not large-scale GWAS analysis
+- Current implementation performs **single-SNP association testing only** and does not yet incorporate linkage disequilibrium (LD) analysis or multi-variant modeling
+- PCA-based population structure correction is implemented in a simplified form and may not fully capture complex population stratification present in real genomic datasets
 
 ---
 
-# Remaining Work
+## Remaining Work
 
-Planned extension:
+Planned improvements for the final project submission:
 
-- Linkage Disequilibrium (LD) analysis / SNP correlation exploration
+- Implement basic **Linkage Disequilibrium (LD) analysis** to explore correlations between nearby SNPs.
+- Improve Manhattan plot formatting to more closely resemble standard GWAS visualizations.
+- Run the tool on a larger real dataset (e.g. the 1000 Genomes Project) instead of only the toy dataset.
 
----
+## Challenges / Questions for Peer Review
+
+- Suggestions for improving the GWAS regression implementation or numerical stability.
+- Ideas for extending the ancestry-stratified analysis.
+- Feedback on CLI usability and repository organization.
