@@ -67,21 +67,21 @@ def main():
     ##ancestry stratified gwas
     if ancestry is not None:
 
-    merged = pheno.merge(geno, on="sample_id").merge(ancestry, on="sample_id")
-
-    for group in merged["ancestry"].unique():
-
-        subset = merged[merged["ancestry"] == group]
-
-        y = subset["phenotype"].to_numpy()
-        X = subset.drop(columns=["sample_id", "phenotype", "ancestry"])
-
-        if args.binary:
-            res = run_gwas_logistic(X.to_numpy(), y, list(X.columns))
-        else:
-            res = run_gwas_linear(X.to_numpy(), y, list(X.columns))
-
-        outfile = out_path.with_name(f"{out_path.stem}_{group}.csv")
-        res.to_csv(outfile, index=False)
-
-        print(f"Wrote ancestry-specific results: {outfile}")
+        merged = pheno.merge(geno, on="sample_id").merge(ancestry, on="sample_id")
+    
+        for group in merged["ancestry"].unique():
+    
+            subset = merged[merged["ancestry"] == group]
+    
+            y = subset["phenotype"].to_numpy()
+            X = subset.drop(columns=["sample_id", "phenotype", "ancestry"])
+    
+            if args.binary:
+                res = run_gwas_logistic(X.to_numpy(), y, list(X.columns))
+            else:
+                res = run_gwas_linear(X.to_numpy(), y, list(X.columns))
+    
+            outfile = out_path.with_name(f"{out_path.stem}_{group}.csv")
+            res.to_csv(outfile, index=False)
+    
+            print(f"Wrote ancestry-specific results: {outfile}")
