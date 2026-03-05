@@ -74,8 +74,13 @@ def main():
             subset = merged[merged["ancestry"] == group]
     
             y = subset["phenotype"].to_numpy()
+
+            if len(set(y)) < 2:
+                print(f"Skipping ancestry group '{group}' because phenotype contains only one class.")
+                continue
+            
             X = subset.drop(columns=["sample_id", "phenotype", "ancestry"])
-    
+                
             if args.binary:
                 res = run_gwas_logistic(X.to_numpy(), y, list(X.columns))
             else:
