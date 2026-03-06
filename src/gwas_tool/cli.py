@@ -5,6 +5,7 @@ import pandas as pd
 from .gwas import run_gwas_linear, run_gwas_logistic
 from .pca import compute_pcs
 from .plots import manhattan_plot, qq_plot
+from .ld import ld_clump
 
 
 def main():
@@ -21,6 +22,9 @@ def main():
     g.add_argument("--plots", action="store_true", help="Create Manhattan and QQ plots next to output.")
     g.add_argument("--pval-col", default="p_value", help="Name of p-value column in output (default: p_value).")
     g.add_argument("--ancestry", help="Optional CSV file with columns: sample_id, ancestry")
+    g.add_argument("--ld-clump", action="store_true", help="Run LD clumping after GWAS.")
+    g.add_argument("--ld-threshold", type=float, default=0.8, help="r^2 threshold for LD clumping (default: 0.8).")
+    g.add_argument("--ld-window-snps", type=int, default=2, help="Neighborhood size in SNP indices for toy LD clumping (default: 2).")
     
     args = p.parse_args()
 
@@ -90,3 +94,21 @@ def main():
             res.to_csv(outfile, index=False)
     
             print(f"Wrote ancestry-specific results: {outfile}")
+
+    # ---------- LD clumping ----------
+    if args.ld_clump:
+        lead_df, clump_df = ld_clump(
+            geno_df=X,
+            gwas_df=res,
+            ld_threshold=args.ld_threshold,
+            window_snps=args.ld_window_snps,
+        )
+
+        lead_path = out_path.with_name(f"{out_path.stem}.lead_snps.csv")
+        clump_path = out_path.with_name(f"{out_path.stem}.ld_clumps.csv")
+
+        lead_df.to_csv(lead_path, index=False)
+        clump_df.to_csv(clump_path, index=False)
+
+        print(f"Wrote LD lead SNP summary: {lead_path}")
+        print(f"Wrote LD clump details: {clump_path}")
