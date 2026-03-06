@@ -38,10 +38,7 @@ def ld_clump(
     ld_threshold: float = 0.8,
     window_snps: int = 2,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """
-    Perform simple LD clumping.
-
-  
+    
     required_cols = {"snp", "p_value"}
     if not required_cols.issubset(gwas_df.columns):
         raise ValueError("gwas_df must contain columns: snp, p_value")
