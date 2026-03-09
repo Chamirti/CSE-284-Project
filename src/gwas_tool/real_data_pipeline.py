@@ -10,13 +10,7 @@ def run_pipeline(geno_prefix, output_dir, gcta_path):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    print("Converting PLINK to RAW...")
-    subprocess.run([
-        "plink",
-        "--bfile", str(geno_prefix),
-        "--recode", "A",
-        "--out", str(geno_prefix)
-    ], check=True)
+   
 
     print("Simulating phenotype with GCTA...")
     subprocess.run([
