@@ -1,16 +1,15 @@
 from pathlib import Path
 import subprocess
 
-from gwas_tool.gwas import run_gwas_linear
+from gwas_tool.gwas import run_gwas
 from gwas_tool.pca import compute_pcs
 from gwas_tool.plots import manhattan_plot, qq_plot
 
-def run_pipeline(geno_prefix, output_dir, gcta_path):
+
+def run_pipeline(geno_prefix, output_dir, gcta_path, model_type="linear"):
     geno_prefix = Path(geno_prefix)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-
-   
 
     print("Simulating phenotype with GCTA...")
     subprocess.run([
@@ -32,7 +31,8 @@ def run_pipeline(geno_prefix, output_dir, gcta_path):
         genotype_prefix=str(geno_prefix),
         phenotype_file=str(pheno_file),
         covariate_file=str(pcs_file),
-        output_file=str(gwas_results_file)
+        output_file=str(gwas_results_file),
+        model_type=model_type
     )
 
     print("Generating plots...")
