@@ -18,4 +18,4 @@ dependencies = [
 ]
 
 [project.scripts]
-gwas-pipeline = "gwas_pipeline.cli:main"
+gwas-pipeline = "gwas_tool.cli:main"
