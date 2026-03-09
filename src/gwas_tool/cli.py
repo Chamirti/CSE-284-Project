@@ -1,6 +1,7 @@
 import argparse
 from gwas_tool.real_data_pipeline import run_pipeline
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="GWAS Tool: Run a GWAS pipeline on genotype data"
@@ -24,13 +25,22 @@ def main():
         help="Path to GCTA executable"
     )
 
+    parser.add_argument(
+        "--model",
+        choices=["linear", "logistic"],
+        default="linear",
+        help="GWAS model type (linear for continuous traits, logistic for binary traits)"
+    )
+
     args = parser.parse_args()
 
     run_pipeline(
         geno_prefix=args.geno,
         output_dir=args.out,
-        gcta_path=args.gcta
+        gcta_path=args.gcta,
+        model_type=args.model
     )
+
 
 if __name__ == "__main__":
     main()
