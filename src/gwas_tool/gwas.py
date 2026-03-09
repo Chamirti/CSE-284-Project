@@ -1,32 +1,39 @@
 import pandas as pd
 import numpy as np
-from sklearn.linear_model import LinearRegression
+import statsmodels.api as sm
+
 
 def run_gwas_linear(genotype_prefix, phenotype_file, covariate_file, output_file):
-    """
-    Simple linear regression GWAS with covariates (PCs).
-    Assumes PLINK .raw file format generated from genotype_prefix.
-    """
-    # Load genotype (PLINK .raw) and phenotype
+
     geno_file = genotype_prefix + ".raw"
+
     geno_df = pd.read_csv(geno_file, sep="\s+")
     pheno_df = pd.read_csv(phenotype_file, delim_whitespace=True, header=None)
     pcs_df = pd.read_csv(covariate_file, delim_whitespace=True, header=None)
 
-    # Merge all
-    data = pd.concat([geno_df, pheno_df, pcs_df], axis=1)
-    y = data.iloc[:, -pheno_df.shape[1]:]  # phenotype column(s)
-    X_cov = pcs_df.values                 # PCs as covariates
+    y = pheno_df.iloc[:, -1].values
+    covariates = pcs_df.values
 
     results = []
-    for snp in geno_df.columns[6:]:  # skip FID, IID, PAT, MAT, SEX, PHENOTYPE columns
-        X_snp = geno_df[[snp]].values
-        X = np.hstack([X_snp, X_cov])
-        model = LinearRegression().fit(X, y)
-        beta = model.coef_[0][0]
-        residuals = y.values - model.predict(X)
-        mse = np.mean(residuals**2)
-        results.append({"SNP": snp, "Beta": beta, "MSE": mse})
+
+    for snp in geno_df.columns[6:]:
+
+        snp_values = geno_df[snp].values.reshape(-1,1)
+
+        X = np.hstack([snp_values, covariates])
+        X = sm.add_constant(X)
+
+        model = sm.OLS(y, X).fit()
+
+        beta = model.params[1]
+        pval = model.pvalues[1]
+
+        results.append({
+            "SNP": snp,
+            "beta": beta,
+            "pval": pval
+        })
 
     results_df = pd.DataFrame(results)
+
     results_df.to_csv(output_file, index=False)
