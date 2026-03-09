@@ -1,33 +1,14 @@
-# python cache
 __pycache__/
 *.pyc
 *.pyo
-*.pyd
 
-# virtual environments
-venv/
-.env/
-.venv/
+data/*.vcf
+data/*.bed
+data/*.bim
+data/*.fam
+data/*.gz
 
-# jupyter notebooks checkpoints
-.ipynb_checkpoints/
+results/*
+!results/.gitkeep
 
-# mac files
-.DS_Store
-
-# vs Code
-.vscode/
-
-# output files
-results/
-*.png
-*.log
-
-# build files
-build/
-dist/
-*.egg-info/
-
-# Large datasets (do not upload big genomics data)
-data/raw/
-data/1000genomes/
+.env
