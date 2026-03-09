@@ -28,7 +28,7 @@ def run_pipeline(geno_prefix, output_dir, gcta_path):
 
     print("Running GWAS...")
     gwas_results_file = output_dir / "gwas_results.csv"
-    run_gwas_linear(
+    run_gwas(
         genotype_prefix=str(geno_prefix),
         phenotype_file=str(pheno_file),
         covariate_file=str(pcs_file),
