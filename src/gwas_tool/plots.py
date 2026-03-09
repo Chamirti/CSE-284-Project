@@ -18,21 +18,49 @@ def manhattan_plot(gwas_results_file, bim_file, output_file):
 
     merged["minus_log10"] = -np.log10(merged["pval"] + 1e-12)
 
+    merged = merged.sort_values(["CHR","BP"])
+
     plt.figure(figsize=(12,6))
 
-    plt.scatter(
-        merged["BP"],
-        merged["minus_log10"],
-        s=8
-    )
+    colors = ["#4C72B0", "#55A868"]
 
-    plt.xlabel("Chromosome 22 Position")
+    x_vals = []
+    tick_positions = []
+    tick_labels = []
+
+    last_base = 0
+
+    for i, (chrom, group) in enumerate(merged.groupby("CHR")):
+
+        x = group["BP"] + last_base
+
+        plt.scatter(
+            x,
+            group["minus_log10"],
+            c=colors[i % 2],
+            s=8
+        )
+
+        x_vals.extend(x)
+
+        tick_positions.append(x.mean())
+        tick_labels.append(str(chrom))
+
+        last_base = x.max()
+
+    # genome-wide significance line
+    sig_line = -np.log10(5e-8)
+
+    plt.axhline(sig_line, color="red", linestyle="--")
+
+    plt.xticks(tick_positions, tick_labels)
+
+    plt.xlabel("Chromosome")
     plt.ylabel("-log10(p-value)")
     plt.title("Manhattan Plot")
 
     plt.savefig(output_file)
     plt.close()
-
 
 def qq_plot(gwas_results_file, output_file):
 
