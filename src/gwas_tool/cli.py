@@ -1,10 +1,7 @@
 import argparse
-from pathlib import Path
 from gwas_tool.real_data_pipeline import run_pipeline
 
-
 def main():
-
     parser = argparse.ArgumentParser(
         description="GWAS Tool: Run a GWAS pipeline on genotype data"
     )
@@ -34,7 +31,6 @@ def main():
         output_dir=args.out,
         gcta_path=args.gcta
     )
-
 
 if __name__ == "__main__":
     main()
