@@ -1,14 +1,41 @@
+# Python cache files
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
+*.pyd
 
-data/*.vcf
-data/*.bed
-data/*.bim
-data/*.fam
-data/*.gz
+# Virtual environments
+venv/
+env/
+.venv/
 
-results/*
-!results/.gitkeep
+# Jupyter / IPython
+.ipynb_checkpoints
 
-.env
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# GWAS output/results
+results/
+*.log
+*.png
+*.csv
+
+# Build / distribution
+*.egg-info/
+dist/
+build/
+
+# IDE settings
+.vscode/
+.idea/
+
+# PLINK binary files (if ever added)
+*.bed
+*.bim
+*.fam
+
+# Temporary files
+*.tmp
+*.bak
