@@ -1,46 +1,40 @@
 import argparse
-from gwas_tool.real_data_pipeline import run_pipeline
-
+from pathlib import Path
+from .gwas import run_gwas_linear, run_gwas_logistic
+from .pca import compute_pcs
+from .plots import manhattan_plot, qq_plot
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="GWAS Tool: Run a GWAS pipeline on genotype data"
-    )
-
-    parser.add_argument(
-        "--geno",
-        required=True,
-        help="Prefix of PLINK genotype files (.bed/.bim/.fam)"
-    )
-
-    parser.add_argument(
-        "--out",
-        default="results",
-        help="Output directory"
-    )
-
-    parser.add_argument(
-        "--gcta",
-        default="gcta64",
-        help="Path to GCTA executable"
-    )
-
-    parser.add_argument(
-        "--model",
-        choices=["linear", "logistic"],
-        default="linear",
-        help="GWAS model type (linear for continuous traits, logistic for binary traits)"
-    )
+    parser = argparse.ArgumentParser(description="GWAS Tool: Run manual GWAS with PCA correction")
+    parser.add_argument("--geno", type=str, required=True, help="Path prefix to genotype file (PLINK .bed/.bim/.fam)")
+    parser.add_argument("--pheno", type=str, required=True, help="Path to phenotype file")
+    parser.add_argument("--type", type=str, choices=["linear", "logistic"], required=True, help="Regression type")
+    parser.add_argument("--out", type=str, required=True, help="Output directory")
 
     args = parser.parse_args()
 
-    run_pipeline(
-        geno_prefix=args.geno,
-        output_dir=args.out,
-        gcta_path=args.gcta,
-        model_type=args.model
-    )
+    geno_prefix = Path(args.geno)
+    pheno_file = Path(args.pheno)
+    out_dir = Path(args.out)
+    out_dir.mkdir(exist_ok=True, parents=True)
 
+    print("Computing PCA...")
+    pcs = compute_pcs(geno_prefix)
+    
+    print(f"Running {args.type} GWAS...")
+    if args.type == "linear":
+        results = run_gwas_linear(geno_prefix, pheno_file, pcs)
+    else:
+        results = run_gwas_logistic(geno_prefix, pheno_file, pcs)
+
+    results_file = out_dir / f"gwas_{args.type}_results.csv"
+    results.to_csv(results_file, index=False)
+    print(f"Results saved to {results_file}")
+
+    print("Generating plots...")
+    manhattan_plot(results, out_dir / f"manhattan_{args.type}.png")
+    qq_plot(results, out_dir / f"qq_{args.type}.png")
+    print("Done.")
 
 if __name__ == "__main__":
     main()
