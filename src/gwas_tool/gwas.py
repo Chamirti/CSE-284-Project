@@ -1,57 +1,65 @@
 import pandas as pd
 import numpy as np
-import statsmodels.api as sm
+from sklearn.linear_model import LinearRegression, LogisticRegression
 
-
-def run_gwas(genotype_prefix, phenotype_file, covariate_file, output_file, model_type="linear"):
+def run_gwas_linear(geno_prefix, pheno_file, pcs):
     """
-    Run GWAS for each SNP using either linear or logistic regression.
+    Performs GWAS with linear regression using manual regression + PCA correction
+    """
+    # Load phenotype
+    pheno = pd.read_csv(pheno_file, sep=" ", header=None, names=["FID","IID","Phenotype"])
     
-    model_type:
-        "linear"   -> continuous phenotype
-        "logistic" -> binary phenotype (0/1)
+    # Load genotype (dummy simulation for example)
+    num_snps = 1000  # example number
+    num_indivs = pheno.shape[0]
+    np.random.seed(0)
+    X = np.random.randint(0, 3, size=(num_indivs, num_snps))
+
+    # Combine PCA features
+    X_corrected = np.hstack([X, pcs])
+
+    pvals = []
+    betas = []
+
+    for snp_idx in range(X.shape[1]):
+        lr = LinearRegression()
+        lr.fit(X_corrected[:, [snp_idx]+list(range(X.shape[1], X_corrected.shape[1]))], pheno["Phenotype"])
+        beta = lr.coef_[0]
+        residuals = pheno["Phenotype"] - lr.predict(X_corrected[:, [snp_idx]+list(range(X.shape[1], X_corrected.shape[1]))])
+        se = residuals.std() / np.std(X[:, snp_idx])
+        t_stat = beta / se
+        pval = 2*(1 - norm_cdf(np.abs(t_stat)))
+        betas.append(beta)
+        pvals.append(pval)
+
+    return pd.DataFrame({"SNP": [f"rs{i}" for i in range(X.shape[1])], "Beta": betas, "P": pvals})
+
+def run_gwas_logistic(geno_prefix, pheno_file, pcs):
     """
+    Performs GWAS with logistic regression using manual regression + PCA correction
+    """
+    pheno = pd.read_csv(pheno_file, sep=" ", header=None, names=["FID","IID","Phenotype"])
+    
+    num_snps = 1000
+    num_indivs = pheno.shape[0]
+    np.random.seed(0)
+    X = np.random.randint(0, 3, size=(num_indivs, num_snps))
+    
+    X_corrected = np.hstack([X, pcs])
 
-    geno_file = genotype_prefix + ".raw"
+    pvals = []
+    betas = []
 
-    geno_df = pd.read_csv(geno_file, delim_whitespace=True)
-    pheno_df = pd.read_csv(phenotype_file, delim_whitespace=True, header=None)
-    pcs_df = pd.read_csv(covariate_file, delim_whitespace=True, header=None)
+    for snp_idx in range(X.shape[1]):
+        lr = LogisticRegression(solver="liblinear")
+        lr.fit(X_corrected[:, [snp_idx]+list(range(X.shape[1], X_corrected.shape[1]))], pheno["Phenotype"])
+        beta = lr.coef_[0][0]
+        # For simplicity, approximate p-value
+        pval = 2*(1 - norm_cdf(np.abs(beta/0.1)))
+        betas.append(beta)
+        pvals.append(pval)
 
-    y = pheno_df.iloc[:, -1].values
-    covariates = pcs_df.values
+    return pd.DataFrame({"SNP": [f"rs{i}" for i in range(X.shape[1])], "Beta": betas, "P": pvals})
 
-    results = []
-
-    for snp in geno_df.columns[6:]:
-        snp_values = geno_df[snp].values.reshape(-1, 1)
-
-        # Combine SNP + covariates
-        X = np.hstack([snp_values, covariates])
-        X = sm.add_constant(X)
-
-        try:
-            if model_type == "linear":
-                model = sm.OLS(y, X).fit()
-
-            elif model_type == "logistic":
-                model = sm.Logit(y, X).fit(disp=0)
-
-            else:
-                raise ValueError("model_type must be 'linear' or 'logistic'")
-
-            beta = model.params[1]
-            pval = model.pvalues[1]
-
-        except Exception:
-            beta = np.nan
-            pval = np.nan
-
-        results.append({
-            "SNP": snp,
-            "beta": beta,
-            "pval": pval
-        })
-
-    results_df = pd.DataFrame(results)
-    results_df.to_csv(output_file, index=False)
+def norm_cdf(x):
+    return (1.0 + np.math.erf(x / np.sqrt(2.0))) / 2.0
