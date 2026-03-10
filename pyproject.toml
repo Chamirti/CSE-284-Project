@@ -1,21 +1,15 @@
-[build-system]
-requires = ["setuptools>=61"]
-build-backend = "setuptools.build_meta"
-
 [project]
-name = "gwas-pipeline"
+name = "CSE-284-Project"
 version = "0.1.0"
-description = "GWAS pipeline for chromosome 22 data"
-authors = [
-    {name = "Your Name"}
-]
+description = "Manual GWAS with PCA correction"
+authors = [{name="Your Name"}]
 dependencies = [
     "numpy",
     "pandas",
     "scikit-learn",
-    "statsmodels",
     "matplotlib"
 ]
 
-[project.scripts]
-gwas-pipeline = "gwas_tool.cli:main"
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
