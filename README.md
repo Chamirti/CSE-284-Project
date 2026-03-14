@@ -57,6 +57,8 @@ No manual installation of dependencies is required if the project is installed u
 
 ```bash
 git clone https://github.com/Chamirti/CSE-284-Project.git
+```
+```bash
 cd CSE-284-Project
 ```
 
