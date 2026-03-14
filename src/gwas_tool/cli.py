@@ -3,6 +3,8 @@ import os
 import pandas as pd
 import numpy as np
 from scipy import stats
+
+# Internal imports from your package modules
 from .gwas import run_gwas_math
 from .pca_and_ld import run_ld_pruning, run_pca
 from .plots import generate_visuals
@@ -10,59 +12,81 @@ from .plots import generate_visuals
 def main():
     parser = argparse.ArgumentParser(description="gwas-tool: High-performance GWAS with PCA & LD Pruning")
     
-    # Updated Arguments with Help text
-    parser.add_argument("--raw", required=True, help="Path to the .raw genotype file (e.g., data/input.raw)")
-    parser.add_argument("--bim", required=True, help="Path to the .bim file for SNP positions")
+    # Arguments
+    parser.add_argument("--raw", required=True, help="Path to .raw genotype file")
+    parser.add_argument("--bim", required=True, help="Path to .bim file for SNP positions")
     parser.add_argument("--causal", required=True, help="Path to causal.snplist for validation")
-    parser.add_argument("--mode", choices=['naive', 'corrected'], required=True, help="Choose 'naive' for simple GWAS or 'corrected' for PCA-based GWAS")
+    parser.add_argument("--mode", choices=['naive', 'pca'], required=True, 
+                        help="Choose 'naive' or 'pca' (includes LD pruning and ancestry correction)")
     
     args = parser.parse_args()
 
-    # 1. Create results folder
-    os.makedirs("results", exist_ok=True)
+    # 1. Define folder names and display labels
+    display_name = "pca corrected with ld pruning" if args.mode == 'pca' else "naive"
+    folder_name = display_name.replace(" ", "_")
+    output_dir = os.path.join("results", folder_name)
+    
+    # Create the mode-specific results folder
+    os.makedirs(output_dir, exist_ok=True)
 
     # 2. Load Data from the user-provided paths
+    print(f"[*] Loading data from {args.raw}...")
     genotypes = pd.read_csv(args.raw, sep=r'\s+', low_memory=False)
+    
+    # Extract phenotype (y) and genotype matrix (X)
     y = genotypes.iloc[:, 5].values
     X = genotypes.iloc[:, 6:].values
     
-    # Impute missing values
-    X[np.isnan(X)] = np.take(np.nanmean(X, axis=0), np.where(np.isnan(X))[1])
+    # Simple Imputation: Replace NaNs with the mean of the column
+    col_means = np.nanmean(X, axis=0)
+    inds = np.where(np.isnan(X))
+    X[inds] = np.take(col_means, inds[1])
 
     PCs = None
-    if args.mode == 'corrected':
-        print("[*] Running LD Pruning and PCA calculation...")
-        kept = run_ld_pruning(X)
-        PCs = run_pca(X[:, kept])
+    if args.mode == 'pca':
+        print(f"\n[*] Starting {display_name.upper()} pipeline...")
+        print("[*] Step 1: Running LD Pruning (Window: 50, Step: 5, R² < 0.2)...")
+        kept_indices = run_ld_pruning(X)
+        
+        print(f"[*] Step 2: Computing PCA via SVD on {len(kept_indices)} pruned SNPs...")
+        PCs = run_pca(X[:, kept_indices], n_pcs=3)
+        print("[*] PCA complete. Top 3 components extracted.")
+    else:
+        print(f"\n[*] Running {display_name.upper()} GWAS (No correction)...")
 
-    print(f"[*] Running {args.mode} GWAS math...")
+    # 3. Core Math Execution
     betas, p_vals = run_gwas_math(X, y, PCs)
 
-    # 3. Process Results
-    snp_names = [n.split('_')[0] for n in genotypes.columns[6:]]
-    results = pd.DataFrame({'SNP': snp_names, 'BETA': betas, 'P': p_vals}).dropna()
+    # 4. Prepare Results DataFrame
+    snp_names = [name.split('_')[0] for name in genotypes.columns[6:]]
+    results = pd.DataFrame({
+        'SNP': snp_names, 
+        'BETA': betas, 
+        'P': p_vals
+    }).dropna()
     
-    # 4. Validation Stats (Printed to CMD)
+    # 5. Calculate Validation Metrics (Lambda GC and False Positives)
     chisq = stats.chi2.ppf(1 - results['P'], 1)
     lambda_gc = np.median(chisq) / 0.454
     
+    # Load causal list to check accuracy
     causal_list = pd.read_csv(args.causal, header=None)[0].values
-    fps = len(results[(~results['SNP'].isin(causal_list)) & (results['P'] < 5e-8)])
+    false_positives = results[(~results['SNP'].isin(causal_list)) & (results['P'] < 5e-8)]
 
-    print("\n" + "="*40)
-    print(f"VALDIATION METRICS")
-    print("-" * 40)
-    print(f"Genomic Inflation (λ_GC): {lambda_gc:.3f}")
-    print(f"False Positives Detected: {fps}")
-    print("="*40)
+    # 6. Final Terminal Report
+    print("\n" + "="*50)
+    print(f"GWAS ANALYSIS REPORT: {display_name.upper()}")
+    print("-" * 50)
+    print(f"Genomic Inflation (λ_GC):   {lambda_gc:.3f}")
+    print(f"False Positives Detected:   {len(false_positives)}")
+    print(f"Output Directory:           {output_dir}")
+    print("="*50)
 
-    # 5. Save Outputs to the 'results' folder
-    results.to_csv("results/gwas_results.csv", index=False)
-    generate_visuals(results, args.bim, causal_list, "results")
+    # 7. Save Outputs
+    results.to_csv(f"{output_dir}/gwas_results.csv", index=False)
+    generate_visuals(results, args.bim, causal_list, output_dir)
     
-    print("\n[+] Analysis Complete!")
-    print("Results saved: results/gwas_results.csv")
-    print("Visuals saved: results/gwas_visualizations.png")
+    print(f"\n[+] Success! Visualizations and CSV saved to {output_dir}\n")
 
 if __name__ == "__main__":
     main()
