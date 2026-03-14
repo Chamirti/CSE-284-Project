@@ -91,7 +91,7 @@ python -m gwas_tool.cli \
   --causal example_data/causal.snplist \
   --mode pca
 ```
-
+Note: The provided example dataset is a small subset (100 individuals, 1000 SNPs) and is intended for testing purposes. It may not produce biologically meaningful associations.
 ---
 
 ## Outputs
@@ -107,7 +107,6 @@ Each folder contains:
 - Manhattan plot
 - Q–Q plot
 
-Note: The provided example dataset is a small subset (100 individuals, 1000 SNPs) and is intended for testing purposes. It may not produce biologically meaningful associations.
 
 ---
 
@@ -160,6 +159,6 @@ Benchmark implementation details are available in the **Benchmarking Results** f
 
 ## Author
 
-Developed as part of a GWAS implementation project focused on linear phenotype analysis with population structure correction.
+Developed by Chamirti Senthilkumar as part of the CSE 284 course project.
 
 ---
