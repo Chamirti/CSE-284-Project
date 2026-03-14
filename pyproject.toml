@@ -12,8 +12,7 @@ dependencies = [
     "scipy",
     "matplotlib",
     "seaborn",
-    "psutil",
-    "statsmodels"
+    "psutil"
 ]
 
 [project.scripts]
