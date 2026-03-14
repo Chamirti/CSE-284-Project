@@ -76,9 +76,9 @@ pip install -e .
 
 ```bash
 python -m gwas_tool.cli \
-  --raw data/genotypes.raw \
-  --bim data/genotypes.bim \
-  --causal data/causal.snplist \
+  --raw example_data/genotypes.raw \
+  --bim example_data/genotypes.bim \
+  --causal example_data/causal.snplist \
   --mode naive
 ```
 
@@ -86,9 +86,9 @@ python -m gwas_tool.cli \
 
 ```bash
 python -m gwas_tool.cli \
-  --raw data/genotypes.raw \
-  --bim data/genotypes.bim \
-  --causal data/causal.snplist \
+  --raw example_data/genotypes.raw \
+  --bim example_data/genotypes.bim \
+  --causal example_data/causal.snplist \
   --mode pca
 ```
 
