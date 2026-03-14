@@ -92,6 +92,7 @@ python -m gwas_tool.cli \
   --mode pca
 ```
 Note: The provided example dataset is a small subset (100 individuals, 1000 SNPs) and is intended for testing purposes. It may not produce biologically meaningful associations.
+
 ---
 
 ## Outputs
