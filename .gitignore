@@ -1,20 +1,13 @@
-# Genomic Data Files (Large)
-*.raw
-*.bed
-*.bim
-*.fam
-*.nosex
-
-# PLINK Output Files
-*.log
-*.eigenvec
-*.eigenval
-*.assoc.linear
-*.prune.in
-*.prune.out
-
-# Python Environment & Cache
+# Python Environment & Cache (Hide these)
 __pycache__/
 venv/
 .ipynb_checkpoints/
-*.csv
+.DS_Store
+
+# PLINK Intermediate Files (Hide these)
+*.log
+*.prune.in
+*.prune.out
+
+# DO NOT add *.raw, *.csv, or data/ here 
+# because you want your professor to see them.
