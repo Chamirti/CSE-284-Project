@@ -11,14 +11,12 @@ def generate_visuals(results, bim_path, causal_list, output_dir):
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 6))
 
-    # Manhattan
     ax1.scatter(df['POS'], df['-log10P'], c='royalblue', s=10, alpha=0.5, label='All SNPs')
     causal_df = df[df['SNP'].isin(causal_list)]
     ax1.scatter(causal_df['POS'], causal_df['-log10P'], c='red', s=40, label='Causal SNPs', edgecolors='black')
     ax1.axhline(y=-np.log10(5e-8), color='darkred', linestyle='--')
     ax1.set_title('Manhattan Plot')
 
-    # QQ Plot
     observed = np.sort(df['P'])
     expected = np.arange(1, len(observed) + 1) / (len(observed) + 1)
     ax2.scatter(-np.log10(expected), -np.log10(observed), c='black', s=10)
