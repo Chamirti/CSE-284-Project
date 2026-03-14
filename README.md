@@ -1,248 +1,145 @@
 # CSE-284-Project  
-# GWAS Tool: A Command-Line Genome-Wide Association Study (GWAS) Pipeline
+# GWAS Tool: A Command-Line Genome-Wide Association Study (GWAS) Pipeline with LD Pruning and PCA Correction for Linear Phenotypes
 
 ![Python](https://img.shields.io/badge/python-3.10+-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Course](https://img.shields.io/badge/course-CSE284-orange)
 ![Status](https://img.shields.io/badge/status-course_project-lightgrey)
 
-Command-line GWAS tool supporting PCA correction, ancestry-stratified analysis, and Manhattan/QQ plots.
-This repository contains a lightweight **command-line GWAS (Genome-Wide Association Study) implementation** developed for the CSE 284 course project.
+## Overview
 
-The tool performs **SNP-wise association testing** using genotype and phenotype data provided as CSV files. It also includes optional **population structure correction using PCA**, **ancestry-stratified GWAS**, and visualization of results using **Manhattan and QQ plots**.
+This project implements a Genome-Wide Association Study (GWAS) tool for analyzing linear phenotypes. The tool performs association testing between genetic variants (SNPs) and a continuous trait using Ordinary Least Squares (OLS) linear regression.
 
-The project is designed to demonstrate the core components of a GWAS pipeline. For peer review, a very small toy dataset is included, so statistical results may appear unstable compared to real GWAS analyses.
+It includes two analysis modes:
 
----
-
-# Pipeline Overview
-
-The tool implements a simplified GWAS pipeline consisting of the following steps:
-
-1. **Load input data**
-   - Genotype matrix (`samples × SNPs`) from CSV  
-   - Phenotype vector (`sample_id`, `phenotype`)
-
-2. **Align samples**  
-   Genotype and phenotype files are merged using the `sample_id` column.
-
-3. **Optional PCA correction**  
-   Principal components are computed from the genotype matrix and included as covariates in the regression model to correct for population structure.
-
-4. **SNP-wise association testing**  
-   Each SNP is tested independently using regression:
-
-   - **Logistic regression** for binary phenotypes  
-   - **Linear regression** for continuous phenotypes
-
-5. **Result generation**  
-   The tool outputs a table containing:
-   - SNP identifier  
-   - effect size (beta)  
-   - p-value
-
-6. **Visualization**
-   - Manhattan plot
-   - QQ plot
-
-7. **Optional ancestry-stratified GWAS**  
-   If an ancestry file is provided, the dataset is split by ancestry group and GWAS is run separately for each group.
-
-Pipeline summary:
-
-    Genotype + Phenotype
-            │
-            ▼
-       Align samples
-            │
-            ▼
-       Optional PCA
-            │
-            ▼
-       SNP-wise GWAS
-            │
-            ├── Manhattan plot
-            └── QQ plot
-            │
-            ▼
-    Ancestry-stratified GWAS (optional)
+- **Naive Mode** – Performs linear regression without population correction.
+- **PCA Mode** – Applies LD pruning followed by Principal Component Analysis (PCA) and includes the top principal components as covariates to correct for population stratification.
 
 ---
 
-# Features
+## Features
 
-### GWAS analysis
-- SNP-wise association testing
-- Supports:
-  - Linear regression (continuous phenotypes)
-  - Logistic regression (binary phenotypes)
-
-Outputs:
-- SNP identifier
-- Effect size (beta)
-- p-value
-
-### Population structure correction
-- Optional **PCA covariates**
-- Principal components computed directly from genotype matrix
-- Helps control for population stratification
-
-### Ancestry-stratified GWAS
-- Optional ancestry file (`sample_id`, `ancestry`)
-- Runs separate GWAS analyses for each ancestry group
-- Outputs separate result files for each ancestry
-
-### Visualization
-Automatically generates:
-
-- Manhattan plot  
-- QQ plot
-
-(using SNP index for the toy dataset)
-
-### Example dataset
-Repository includes a small **toy dataset (10 samples, 5 SNPs)** to demonstrate the pipeline.
+- Supports PLINK `.raw` genotype files
+- Handles phenotype data from `.phen` files
+- Automatic sample alignment using Individual IDs (IID)
+- Mean imputation for missing genotypes
+- LD pruning before PCA
+- Population structure correction using PCA (top 3 PCs)
+- Linear regression association testing
+- Outputs Beta, p-value, genomic inflation factor
+- Generates Manhattan and Q–Q plots
+- Benchmark comparison with PLINK
 
 ---
 
-# Installation
+## Requirements
 
-Install the package in editable mode:
-
-    python -m pip install -e .
-
-This installs the command-line tool:
-
-    gwas-tool --help
-
----
-# Quick Start (Example Usage):
-
-### 1. Basic GWAS
-
-    gwas-tool gwas \
-      --geno data/test/geno.csv \
-      --pheno data/test/pheno.csv \
-      --binary \
-      --plots \
-      --out results/test_results.csv
-
-Runs SNP-wise association testing and generates Manhattan and QQ plots.
+- Python 3.x
+- NumPy (v1.x)
+- Pandas (v2.x)
+- Matplotlib
+- SciPy
+- scikit-learn
 
 ---
 
-### 2. PCA-Corrected GWAS
+## Quick Start (Example Usage)
 
-    gwas-tool gwas \
-      --geno data/test/geno.csv \
-      --pheno data/test/pheno.csv \
-      --binary \
-      --pcs 2 \
-      --plots \
-      --out results/test_results_pca.csv
+### 1. Clone the Repository
 
-Adds the top **2 principal components** as covariates to correct for population structure.
+```bash
+git clone <your-repository-link>
+cd <your-project-folder>
+```
 
----
+### 2. Install Dependencies
 
-### 3. Ancestry-Stratified GWAS
+```bash
+pip install -r requirements.txt
+```
 
-    gwas-tool gwas \
-      --geno data/test/geno.csv \
-      --pheno data/test/pheno.csv \
-      --binary \
-      --ancestry data/test/ancestry.csv \
-      --out results/test_results_ancestry.csv
+(If no `requirements.txt` is provided, install dependencies manually using the command above.)
 
-Runs GWAS separately for each ancestry group and outputs ancestry-specific results files.
+### 3. Prepare Input Files
 
-This produces separate results files for each ancestry group.
+You need:
 
-Example outputs:
+- Genotype file in **PLINK `.raw` format**
+- Phenotype file in **`.phen` format**
 
-    results/
-      test_results_ancestry_AFR.csv
-      test_results_ancestry_EUR.csv
-      test_results_ancestry_EAS.csv
+Ensure both files share matching **Individual IDs (IID)**.
 
----
+### 4. Run the Tool
 
-# Running the Example Script
+Example usage:
 
-The repository includes a demonstration script:
+```bash
+python gwas.py --genotype data.raw --phenotype data.phen --mode pca
+```
 
-    examples/run_test.sh
+Available modes:
 
-Run:
+- `--mode naive`
+- `--mode pca`
 
-    bash examples/run_test.sh
+### 5. View Results
 
-This script runs:
+The tool outputs:
 
-- Standard GWAS
-- PCA-corrected GWAS
-- Ancestry-stratified GWAS
-
-and generates results in the `results/` directory.
+- Association statistics (Beta, SE, t-statistic, p-value)
+- Manhattan plot
+- Q–Q plot
+- Benchmark comparison metrics (if enabled)
 
 ---
 
-# Example Output
+## Benchmarking
 
-GWAS results file:
+The tool was evaluated on a dataset containing:
 
-    snp,beta,p_value
-    SNP_A,0.29,0.57
-    SNP_B,-0.29,0.57
-    ...
+- 50,000 SNPs
+- 310 individuals
 
-Plots generated:
+Results were compared against **PLINK v1.90b** using:
 
-    results/test_results.manhattan.png
-    results/test_results.qq.png
+```bash
+--linear
+--allow-no-sex
+```
 
----
+Performance was measured using:
 
-# Project Structure
-
-    CSE-284-Project
-    │
-    ├── src/gwas_tool
-    │   ├── cli.py
-    │   ├── gwas.py
-    │   ├── pca.py
-    │   └── plots.py
-    │
-    ├── data/test
-    │   ├── geno.csv
-    │   ├── pheno.csv
-    │   └── ancestry.csv
-    │
-    ├── examples
-    │   └── run_test.sh
-    │
-    ├── pyproject.toml
-    └── README.md
-
----
-## Limitations
-
-- Example dataset is intentionally **very small** (10 samples, 5 SNPs)
-- P-values may appear unstable for ancestry-stratified analyses due to small sample sizes
-- Current implementation performs **single-SNP association testing only** and does not yet incorporate linkage disequilibrium (LD) analysis or multi-variant modeling
+- Execution time
+- Memory usage
+- P-value correlation
+- Beta correlation
+- Genomic inflation factor (λGC)
 
 ---
 
-## Remaining Work
+## Implementation Details
 
-Planned improvements for the final project submission:
+- Written in Python using a modular design
+- Uses NumPy for vectorized matrix operations
+- Uses Pandas for data integration
+- OLS regression implemented using linear algebra
+- LD pruning performed using sliding window approach
+- PCA computed using Singular Value Decomposition (SVD)
 
-- Implement **Linkage Disequilibrium (LD) analysis** to explore correlations between nearby SNPs.
-- Improve Manhattan plot formatting to more closely resemble standard GWAS visualizations.
-- Run the tool on a larger real dataset (e.g. the 1000 Genomes Project) instead of only the toy dataset.
+---
 
-## Challenges / Questions for Peer Review
+## Future Improvements
 
-- Suggestions for improving the GWAS regression implementation or numerical stability.
-- Ideas for extending the ancestry-stratified analysis.
-- Feedback on CLI usability and repository organization.
+- Support for PLINK binary formats (.bed/.bim/.fam)
+- Additional covariates (age, sex, environmental factors)
+- Automated quality control (MAF, HWE filtering)
+- Chunked processing for large-scale datasets
+- Enhanced scalability for biobank-sized data
+
+---
+
+## Author
+
+Developed as part of a GWAS implementation project focusing on linear phenotype analysis with population structure correction.
+
+---
