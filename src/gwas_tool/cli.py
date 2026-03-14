@@ -21,15 +21,7 @@ def main():
     
     args = parser.parse_args()
 
-    # 1. Define folder names and display labels
-    display_name = "pca corrected with ld pruning" if args.mode == 'pca' else "naive"
-    folder_name = display_name.replace(" ", "_")
-    output_dir = os.path.join("results", folder_name)
-    
-    # Create the mode-specific results folder
-    os.makedirs(output_dir, exist_ok=True)
-
-    # 2. Load Data from the user-provided paths
+    # 1. Load Data
     print(f"[*] Loading data from {args.raw}...")
     genotypes = pd.read_csv(args.raw, sep=r'\s+', low_memory=False)
     
@@ -37,7 +29,16 @@ def main():
     y = genotypes.iloc[:, 5].values
     X = genotypes.iloc[:, 6:].values
     
-    # Simple Imputation: Replace NaNs with the mean of the column
+    # Auto-detect trait type for folder naming
+    is_binary = np.array_equal(y, y.astype(bool)) or set(np.unique(y)) <= {0, 1}
+    trait_type = "binary" if is_binary else "continuous"
+
+    # Define folder names and display labels
+    display_name = f"{trait_type}_{'pca_corrected_with_ld_pruning' if args.mode == 'pca' else 'naive'}"
+    output_dir = os.path.join("results", display_name)
+    os.makedirs(output_dir, exist_ok=True)
+
+    # 2. Simple Imputation
     col_means = np.nanmean(X, axis=0)
     inds = np.where(np.isnan(X))
     X[inds] = np.take(col_means, inds[1])
@@ -52,9 +53,9 @@ def main():
         PCs = run_pca(X[:, kept_indices], n_pcs=3)
         print("[*] PCA complete. Top 3 components extracted.")
     else:
-        print(f"\n[*] Running {display_name.upper()} GWAS (No correction)...")
+        print(f"\n[*] Running {display_name.upper()} GWAS...")
 
-    # 3. Core Math Execution
+    # 3. Core Math Execution (Auto-switches between Linear and Logistic)
     betas, p_vals = run_gwas_math(X, y, PCs)
 
     # 4. Prepare Results DataFrame
@@ -66,6 +67,7 @@ def main():
     }).dropna()
     
     # 5. Calculate Validation Metrics (Lambda GC and False Positives)
+    # Using Chi-squared for p-value inflation check
     chisq = stats.chi2.ppf(1 - results['P'], 1)
     lambda_gc = np.median(chisq) / 0.454
     
@@ -77,6 +79,7 @@ def main():
     print("\n" + "="*50)
     print(f"GWAS ANALYSIS REPORT: {display_name.upper()}")
     print("-" * 50)
+    print(f"Trait Type:               {trait_type.upper()}")
     print(f"Genomic Inflation (λ_GC):   {lambda_gc:.3f}")
     print(f"False Positives Detected:   {len(false_positives)}")
     print(f"Output Directory:           {output_dir}")
