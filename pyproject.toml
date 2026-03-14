@@ -15,7 +15,8 @@ dependencies = [
     "matplotlib",
     "seaborn",
     "psutil",
+    "openpyxl",
 ]
 
 [project.scripts]
-gwas-tool = "manual_gwas.manual_gwas:main"
+gwas-tool = "gwas_tool.cli:main"
