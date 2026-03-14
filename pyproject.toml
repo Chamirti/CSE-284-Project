@@ -1,15 +1,21 @@
-[project]
-name = "CSE-284-Project"
-version = "0.1.0"
-description = "Manual GWAS with PCA correction"
-authors = [{name="Your Name"}]
-dependencies = [
-    "numpy",
-    "pandas",
-    "scikit-learn",
-    "matplotlib"
-]
-
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "gwas-tool"
+version = "0.1.0"
+description = "A vectorized Python GWAS tool with optional LD Pruning and PCA correction"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "matplotlib",
+    "seaborn",
+    "psutil",
+]
+
+[project.scripts]
+gwas-tool = "manual_gwas.manual_gwas:main"
