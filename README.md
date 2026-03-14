@@ -1,4 +1,4 @@
-# CSE-284-Project  
+# CSE-284 Project  
 # GWAS Tool: A Command-Line Genome-Wide Association Study (GWAS) Pipeline with LD Pruning and PCA Correction for Linear Phenotypes
 
 ![Python](https://img.shields.io/badge/python-3.10+-blue)
@@ -6,40 +6,48 @@
 ![Course](https://img.shields.io/badge/course-CSE284-orange)
 ![Status](https://img.shields.io/badge/status-course_project-lightgrey)
 
+---
+
 ## Overview
 
-This project implements a Genome-Wide Association Study (GWAS) tool for analyzing linear phenotypes. The tool performs association testing between genetic variants (SNPs) and a continuous trait using Ordinary Least Squares (OLS) linear regression.
+This project implements a command-line Genome-Wide Association Study (GWAS) tool for analyzing linear (continuous) phenotypes. The tool performs association testing between genetic variants (SNPs) and a quantitative trait using Ordinary Least Squares (OLS) linear regression.
 
-It includes two analysis modes:
+It supports two analysis modes:
 
-- **Naive Mode** – Performs linear regression without population correction.
+- **Naive Mode** – Performs linear regression without population correction.  
 - **PCA Mode** – Applies LD pruning followed by Principal Component Analysis (PCA) and includes the top principal components as covariates to correct for population stratification.
 
 ---
 
 ## Features
 
-- Supports PLINK `.raw` genotype files
-- Handles phenotype data from `.phen` files
-- Automatic sample alignment using Individual IDs (IID)
-- Mean imputation for missing genotypes
-- LD pruning before PCA
-- Population structure correction using PCA (top 3 PCs)
-- Linear regression association testing
-- Outputs Beta, p-value, genomic inflation factor
-- Generates Manhattan and Q–Q plots
-- Benchmark comparison with PLINK
+- Supports PLINK `.raw` genotype files  
+- Processes phenotype data files  
+- Automatic sample alignment using Individual IDs (IID)  
+- Mean imputation for missing genotypes  
+- Linkage Disequilibrium (LD) pruning  
+- PCA-based population structure correction (top 3 PCs)  
+- Linear regression association testing  
+- Outputs SNP, Beta, p-value, and genomic inflation factor (λGC)  
+- Generates Manhattan and Q–Q plots  
+- Benchmark comparison with PLINK  
 
 ---
 
 ## Requirements
 
-- Python 3.x
-- NumPy (v1.x)
-- Pandas (v2.x)
-- Matplotlib
-- SciPy
-- scikit-learn
+Dependencies are managed using `pyproject.toml`.
+
+The project uses:
+
+- numpy  
+- pandas  
+- scipy  
+- matplotlib  
+- seaborn  
+- psutil  
+
+No manual installation of dependencies is required if the project is installed using the provided build configuration.
 
 ---
 
@@ -48,48 +56,56 @@ It includes two analysis modes:
 ### 1. Clone the Repository
 
 ```bash
-git clone <your-repository-link>
-cd <your-project-folder>
+git clone https://github.com/Chamirti/CSE-284-Project.git
+cd CSE-284-Project
 ```
 
-### 2. Install Dependencies
+### 2. Install the Tool
+
+Since this project uses `pyproject.toml`, install it with:
 
 ```bash
-pip install -r requirements.txt
+pip install -e .
 ```
 
-(If no `requirements.txt` is provided, install dependencies manually using the command above.)
+### 3. Run the Tool
 
-### 3. Prepare Input Files
-
-You need:
-
-- Genotype file in **PLINK `.raw` format**
-- Phenotype file in **`.phen` format**
-
-Ensure both files share matching **Individual IDs (IID)**.
-
-### 4. Run the Tool
-
-Example usage:
+#### Naive GWAS:
 
 ```bash
-python gwas.py --genotype data.raw --phenotype data.phen --mode pca
+python -m gwas_tool.cli \
+  --raw data/genotypes.raw \
+  --bim data/genotypes.bim \
+  --causal data/causal.snplist \
+  --mode naive
 ```
 
-Available modes:
+#### PCA Mode:
 
-- `--mode naive`
-- `--mode pca`
+```bash
+python -m gwas_tool.cli \
+  --raw data/genotypes.raw \
+  --bim data/genotypes.bim \
+  --causal data/causal.snplist \
+  --mode pca
+```
 
-### 5. View Results
+---
 
-The tool outputs:
+## Outputs
 
-- Association statistics (Beta, SE, t-statistic, p-value)
+Results are saved in:
+
+- `Results/naive`
+- `Results/pca_corrected_with_ld_pruning`
+
+Each folder contains:
+
+- Association statistics (SNP, Beta, p-value)
 - Manhattan plot
 - Q–Q plot
-- Benchmark comparison metrics (if enabled)
+
+Note: The provided example dataset is a small subset (100 individuals, 1000 SNPs) and is intended for testing purposes. It may not produce biologically meaningful associations.
 
 ---
 
@@ -97,49 +113,51 @@ The tool outputs:
 
 The tool was evaluated on a dataset containing:
 
-- 50,000 SNPs
-- 310 individuals
+- 50,000 SNPs  
+- 310 individuals  
 
-Results were compared against **PLINK v1.90b** using:
+Results were benchmarked against **PLINK v1.90b** using:
 
 ```bash
 --linear
 --allow-no-sex
 ```
 
-Performance was measured using:
+Performance was evaluated in terms of:
 
-- Execution time
-- Memory usage
-- P-value correlation
-- Beta correlation
-- Genomic inflation factor (λGC)
+- Execution time  
+- Memory usage  
+- P-value correlation  
+- Beta correlation  
+- Genomic inflation factor (λGC)  
+
+Benchmark implementation details are available in the **Benchmarking Results** folder.
 
 ---
 
 ## Implementation Details
 
-- Written in Python using a modular design
-- Uses NumPy for vectorized matrix operations
-- Uses Pandas for data integration
-- OLS regression implemented using linear algebra
-- LD pruning performed using sliding window approach
-- PCA computed using Singular Value Decomposition (SVD)
+- Python-based modular architecture  
+- NumPy for vectorized matrix computations  
+- Pandas for data integration  
+- OLS regression implemented using linear algebra  
+- LD pruning using a sliding window approach  
+- PCA computed using Singular Value Decomposition (SVD)  
 
 ---
 
 ## Future Improvements
 
-- Support for PLINK binary formats (.bed/.bim/.fam)
-- Additional covariates (age, sex, environmental factors)
-- Automated quality control (MAF, HWE filtering)
-- Chunked processing for large-scale datasets
-- Enhanced scalability for biobank-sized data
+- Support for PLINK binary formats (.bed/.bim/.fam)  
+- Additional covariates (age, sex, environmental factors)  
+- Automated quality control (MAF, HWE filtering)  
+- Chunked processing for large-scale datasets  
+- Improved scalability for biobank-scale data  
 
 ---
 
 ## Author
 
-Developed as part of a GWAS implementation project focusing on linear phenotype analysis with population structure correction.
+Developed as part of a GWAS implementation project focused on linear phenotype analysis with population structure correction.
 
 ---
