@@ -1,40 +1,57 @@
 import argparse
-from pathlib import Path
-from .gwas import run_gwas_linear, run_gwas_logistic
-from .pca import compute_pcs
-from .plots import manhattan_plot, qq_plot
+import os
+import pandas as pd
+import numpy as np
+from scipy import stats
+from .gwas import run_gwas_math
+from .pca_and_ld import run_ld_pruning, run_pca
+from .plots import generate_visuals
 
 def main():
-    parser = argparse.ArgumentParser(description="GWAS Tool: Run manual GWAS with PCA correction")
-    parser.add_argument("--geno", type=str, required=True, help="Path prefix to genotype file (PLINK .bed/.bim/.fam)")
-    parser.add_argument("--pheno", type=str, required=True, help="Path to phenotype file")
-    parser.add_argument("--type", type=str, choices=["linear", "logistic"], required=True, help="Regression type")
-    parser.add_argument("--out", type=str, required=True, help="Output directory")
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--raw", required=True)
+    parser.add_argument("--bim", required=True)
+    parser.add_argument("--causal", required=True)
+    parser.add_argument("--mode", choices=['naive', 'corrected'], required=True)
     args = parser.parse_args()
 
-    geno_prefix = Path(args.geno)
-    pheno_file = Path(args.pheno)
-    out_dir = Path(args.out)
-    out_dir.mkdir(exist_ok=True, parents=True)
+    # Create results folder
+    os.makedirs("results", exist_ok=True)
 
-    print("Computing PCA...")
-    pcs = compute_pcs(geno_prefix)
+    # Load Data
+    genotypes = pd.read_csv(args.raw, sep=r'\s+', low_memory=False)
+    y = genotypes.iloc[:, 5].values
+    X = genotypes.iloc[:, 6:].values
+    X[np.isnan(X)] = np.take(np.nanmean(X, axis=0), np.where(np.isnan(X))[1])
+
+    PCs = None
+    if args.mode == 'corrected':
+        print("[*] Running LD Pruning and PCA...")
+        kept = run_ld_pruning(X)
+        PCs = run_pca(X[:, kept])
+
+    print(f"[*] Running {args.mode} GWAS...")
+    betas, p_vals = run_gwas_math(X, y, PCs)
+
+    # Prepare Results
+    snp_names = [n.split('_')[0] for n in genotypes.columns[6:]]
+    results = pd.DataFrame({'SNP': snp_names, 'BETA': betas, 'P': p_vals}).dropna()
     
-    print(f"Running {args.type} GWAS...")
-    if args.type == "linear":
-        results = run_gwas_linear(geno_prefix, pheno_file, pcs)
-    else:
-        results = run_gwas_logistic(geno_prefix, pheno_file, pcs)
+    # Validation Stats
+    chisq = stats.chi2.ppf(1 - results['P'], 1)
+    lambda_gc = np.median(chisq) / 0.454
+    causal_list = pd.read_csv(args.causal, header=None)[0].values
+    fps = len(results[(~results['SNP'].isin(causal_list)) & (results['P'] < 5e-8)])
 
-    results_file = out_dir / f"gwas_{args.type}_results.csv"
-    results.to_csv(results_file, index=False)
-    print(f"Results saved to {results_file}")
+    print("\n" + "="*30)
+    print(f"Genomic Inflation (λ): {lambda_gc:.3f}")
+    print(f"False Positives: {fps}")
+    print("="*30)
 
-    print("Generating plots...")
-    manhattan_plot(results, out_dir / f"manhattan_{args.type}.png")
-    qq_plot(results, out_dir / f"qq_{args.type}.png")
-    print("Done.")
+    # Save outputs
+    results.to_excel("results/gwas_results.xlsx", index=False)
+    generate_visuals(results, args.bim, causal_list, "results")
+    print("\nDone! Check the 'results' folder for your Excel and Plots.")
 
 if __name__ == "__main__":
     main()
