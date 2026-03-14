@@ -108,7 +108,8 @@ Each folder contains:
 - Manhattan plot
 - Q–Q plot
 
-
+### Example Outputs:
+![Manhattan Plot and QQ PLot](images/manhattan_example.png)
 ---
 
 ## Benchmarking
