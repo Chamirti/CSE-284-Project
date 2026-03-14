@@ -21,23 +21,26 @@ def main():
     
     args = parser.parse_args()
 
-    # 1. Load Data
-    print(f"[*] Loading data from {args.raw}...")
+   # 1. Load Data
+    print(f"[*] Loading genotypes from {args.raw}...")
     genotypes = pd.read_csv(args.raw, sep=r'\s+', low_memory=False)
-    
-    # Extract phenotype (y) and genotype matrix (X)
-    y = genotypes.iloc[:, 5].values
-    X = genotypes.iloc[:, 6:].values
-    
-    # Auto-detect trait type for folder naming
-    is_binary = np.array_equal(y, y.astype(bool)) or set(np.unique(y)) <= {0, 1}
-    trait_type = "binary" if is_binary else "continuous"
 
-    # Define folder names and display labels
-    display_name = f"{trait_type}_{'pca_corrected_with_ld_pruning' if args.mode == 'pca' else 'naive'}"
-    output_dir = os.path.join("results", display_name)
-    os.makedirs(output_dir, exist_ok=True)
+    # NEW: Load the external binary phenotype
+    # Assuming the file is named binary_gwas_data.phen and is in the same folder
+    pheno_path = "C:/Users/chami/Downloads/binary_gwas_data.phen" 
+    print(f"[*] Loading binary phenotypes from {pheno_path}...")
+    
+    # PLINK .phen files usually have FID, IID, and then the Trait
+    pheno_df = pd.read_csv(pheno_path, sep=r'\s+', header=None, names=['FID', 'IID', 'y_binary'])
 
+    # Merge on IID to ensure the DNA matches the correct Person
+    merged_data = pd.merge(genotypes, pheno_df, on='IID')
+
+    # Now extract y and X from the merged dataframe
+    y = merged_data['y_binary'].values
+    # Genotypes start after the metadata columns (FID, IID, PAT, MAT, SEX, PHENO)
+    # Since we merged, check your column indices, but usually:
+    X = merged_data.iloc[:, 7:-1].values # Adjust indices based on your merged df structure
     # 2. Simple Imputation
     col_means = np.nanmean(X, axis=0)
     inds = np.where(np.isnan(X))
