@@ -1,41 +1,20 @@
-# Python cache files
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-
-# Virtual environments
-venv/
-env/
-.venv/
-
-# Jupyter / IPython
-.ipynb_checkpoints
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# GWAS output/results
-results/
-*.log
-*.png
-*.csv
-
-# Build / distribution
-*.egg-info/
-dist/
-build/
-
-# IDE settings
-.vscode/
-.idea/
-
-# PLINK binary files (if ever added)
+# Genomic Data Files (Large)
+*.raw
 *.bed
 *.bim
 *.fam
+*.nosex
 
-# Temporary files
-*.tmp
-*.bak
+# PLINK Output Files
+*.log
+*.eigenvec
+*.eigenval
+*.assoc.linear
+*.prune.in
+*.prune.out
+
+# Python Environment & Cache
+__pycache__/
+venv/
+.ipynb_checkpoints/
+*.csv
