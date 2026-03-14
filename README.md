@@ -109,7 +109,7 @@ Each folder contains:
 - Q–Q plot
 
 ### Example Outputs:
-![Manhattan Plot and QQ PLot](gwas_visualizations.png)
+![Manhattan Plot and QQ PLot](images/gwas_visualizations.png)
 ---
 
 ## Benchmarking
