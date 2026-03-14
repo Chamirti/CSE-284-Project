@@ -21,27 +21,23 @@ def main():
     
     args = parser.parse_args()
 
-   # 1. Load Data
-    print(f"[*] Loading genotypes from {args.raw}...")
-    genotypes = pd.read_csv(args.raw, sep=r'\s+', low_memory=False)
-
-    # NEW: Load the external binary phenotype
-    # Assuming the file is named binary_gwas_data.phen and is in the same folder
-    pheno_path = "C:/Users/chami/Downloads/binary_gwas_data.phen" 
-    print(f"[*] Loading binary phenotypes from {pheno_path}...")
+    # 1. Define folder names and display labels
+    display_name = "pca corrected with ld pruning" if args.mode == 'pca' else "naive"
+    folder_name = display_name.replace(" ", "_")
+    output_dir = os.path.join("results", folder_name)
     
-    # PLINK .phen files usually have FID, IID, and then the Trait
-    pheno_df = pd.read_csv(pheno_path, sep=r'\s+', header=None, names=['FID', 'IID', 'y_binary'])
+    # Create the mode-specific results folder
+    os.makedirs(output_dir, exist_ok=True)
 
-    # Merge on IID to ensure the DNA matches the correct Person
-    merged_data = pd.merge(genotypes, pheno_df, on='IID')
-
-    # Now extract y and X from the merged dataframe
-    y = merged_data['y_binary'].values
-    # Genotypes start after the metadata columns (FID, IID, PAT, MAT, SEX, PHENO)
-    # Since we merged, check your column indices, but usually:
-    X = merged_data.iloc[:, 7:-1].values # Adjust indices based on your merged df structure
-    # 2. Simple Imputation
+    # 2. Load Data from the user-provided paths
+    print(f"[*] Loading data from {args.raw}...")
+    genotypes = pd.read_csv(args.raw, sep=r'\s+', low_memory=False)
+    
+    # Extract phenotype (y) and genotype matrix (X)
+    y = genotypes.iloc[:, 5].values
+    X = genotypes.iloc[:, 6:].values
+    
+    # Simple Imputation: Replace NaNs with the mean of the column
     col_means = np.nanmean(X, axis=0)
     inds = np.where(np.isnan(X))
     X[inds] = np.take(col_means, inds[1])
@@ -56,9 +52,9 @@ def main():
         PCs = run_pca(X[:, kept_indices], n_pcs=3)
         print("[*] PCA complete. Top 3 components extracted.")
     else:
-        print(f"\n[*] Running {display_name.upper()} GWAS...")
+        print(f"\n[*] Running {display_name.upper()} GWAS (No correction)...")
 
-    # 3. Core Math Execution (Auto-switches between Linear and Logistic)
+    # 3. Core Math Execution
     betas, p_vals = run_gwas_math(X, y, PCs)
 
     # 4. Prepare Results DataFrame
@@ -70,7 +66,6 @@ def main():
     }).dropna()
     
     # 5. Calculate Validation Metrics (Lambda GC and False Positives)
-    # Using Chi-squared for p-value inflation check
     chisq = stats.chi2.ppf(1 - results['P'], 1)
     lambda_gc = np.median(chisq) / 0.454
     
@@ -82,7 +77,6 @@ def main():
     print("\n" + "="*50)
     print(f"GWAS ANALYSIS REPORT: {display_name.upper()}")
     print("-" * 50)
-    print(f"Trait Type:               {trait_type.upper()}")
     print(f"Genomic Inflation (λ_GC):   {lambda_gc:.3f}")
     print(f"False Positives Detected:   {len(false_positives)}")
     print(f"Output Directory:           {output_dir}")
